@@ -142,7 +142,7 @@ for i in range(0, NUM_DIVISIONS):
 @app.route('/', methods=['GET'])
 def get_home():
     print('Request received')
-    return render_template('index.html', MAPBOX_ACCESS_TOKEN=os.getenv('MAPBOX_ACCESS_TOKEN'))
+    return render_template('index.html', MAPBOX_ACCESS_TOKEN=os.getenv('MAPBOX_ACCESS_TOKEN'), HEROKU_APP_URL=os.getenv('HEROKU_APP_URL'))
 
 @app.route('/satellite_data/<file_number>', methods=['GET'])
 def get_satellite_data(file_number):

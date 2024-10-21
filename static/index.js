@@ -111,7 +111,7 @@ function initializeMap(accessToken) {
 
                     let lastModified = sourceNumberToLastModified[i+1]? sourceNumberToLastModified[i+1] : null;
 
-                    fetch(`http://127.0.0.1:5000/satellite_data/${i+1}`, {
+                    fetch(`${herokuAppURL}/satellite_data/${i+1}`, {
                             method: 'GET',
                             headers: {
                                 'If-Modified-Since': new Date(lastModified).toUTCString()
@@ -151,7 +151,7 @@ setInterval(updateClock, 1000);
 setInterval(() => {
     if(!selectedSatellite || !selectedSatellite.norad) return;
 
-    fetch(`http://127.0.0.1:5000/satellite_data/norad/${selectedSatellite.norad}`)
+    fetch(`${herokuAppURL}/satellite_data/norad/${selectedSatellite.norad}`)
         .then(res => res.json())
         .then(data => {
             selectedSatellite.coordinates = data.coordinates;
