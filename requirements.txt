@@ -1,12 +1,5 @@
 gunicorn
 geojson
 flask
-threading
-time
-datetime
-os
-shutil
 skyfield
 flask_cors
-json
-math
