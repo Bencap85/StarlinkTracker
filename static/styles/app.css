@@ -1,0 +1,98 @@
+* {
+    font-family: monospace, Open-sans;
+    
+}
+body {
+    margin: 0;
+    display: flex;
+}
+#map {
+    position: absolute; 
+    top: 0; 
+    bottom: 0; 
+    width: 100%;
+    flex-grow: 1;
+    height: 100vh;
+}
+#sidebar {
+    background-color: rgb(255, 255, 255);
+    /* display: flex; */
+    border-right: 0.5vw solid rgb(203, 203, 203);
+    height: 100vh;
+    z-index: 1;
+}
+#sidebar.maximized {
+    width: 35%;
+}
+#sidebar.minimized {
+    width: 2%;
+}
+#sidebar-satellite-data {
+    margin-bottom: 0;
+    margin-top: 2%;
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: rgb(255, 255, 255);
+    color: rgb(0, 0, 0);
+    padding: 5%;
+    padding-top: 0;
+    border: 1.5px solid rgb(142, 142, 142);
+    border-radius: 3px;
+    font-weight: bold;
+    
+}
+.sidebar-satellite-data-list li {
+    color: green;
+    margin-bottom: 5%;
+    background-color: rgb(242, 242, 242);
+    border: 1px solid rgb(146, 146, 146);
+    border-radius: 3px;
+    padding: 2%;
+    list-style-type: none;
+    margin-left: -9.5%;
+
+    
+}
+.sidebar-satellite-data-list .value {
+    display: block;
+    color: red;
+    width: fit-content;
+    margin-left: 10%;
+    margin-top: 2%;
+    font-weight: 100;
+}
+.coordinates-list {
+    list-style-type: none;
+}
+.coordinates-list li {
+    margin-bottom: 0;
+    margin-left: -4%;
+    border: none;
+}
+.coordinates-list-value {
+    color: rgb(255, 0, 0);
+    font-weight: 100;
+}
+#sidebar.minimized > * {
+    display: none;
+}
+#satellite-img {
+    display: block;
+    width: 90%;
+    height: 38%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 1%;
+}
+#clock {
+    z-index: 3;
+    position: absolute;
+    top: 3%;
+    right: 2%;
+    color: rgb(255, 255, 255);
+    font-size: 150%;
+    padding: 1.5%;
+    border: 1px solid white;
+    border-radius: 0px;
+}
