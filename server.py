@@ -120,6 +120,8 @@ PATH_TO_GEOJSON_DATA_FOLDER = os.path.curdir + "/geojson_data"
 NUM_DIVISIONS = 3
 UPDATE_DELAY = 0
 
+satellite_utils.fetch_tle_data()
+
 norad_to_satellite = satellite_utils.initialize_satellites("tle_data/satellite_data_file.tle")
 division_to_satellites = divide_satellites(norad_to_satellite, NUM_DIVISIONS)
 

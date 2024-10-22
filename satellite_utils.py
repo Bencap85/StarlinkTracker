@@ -1,9 +1,26 @@
 import datetime
 import json
 import math
+import urllib
 
 from skyfield.api import load, Topos
 from skyfield.sgp4lib import EarthSatellite
+
+def fetch_tle_data():
+    TLE_DATA_URL = "https://celestrak.org/NORAD/elements/gp.php?GROUP=starlink&FORMAT=tle"
+    TLE_FILE_NAME = 'tle_data/satellite_data_file.tle'
+
+    try:
+        data = urllib.request.urlopen(TLE_DATA_URL)
+
+        with open(str(TLE_FILE_NAME), "w") as file:
+
+            for line in data.read().decode("utf-8").split("\n"):
+                file.write(line)
+
+    except IOError as e:
+        print("Error getting TLE data", str(e))
+
 
 
 def initialize_satellites(file_name):  # Loads satellites from .tle file into memory (returns dict of norad-to-satellite)
