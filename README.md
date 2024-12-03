@@ -30,4 +30,7 @@ satisfactory, low-latency results.
 <h2>Screenshots</h2>
 
 <img width="960" alt="starlink_tracker_screenshot" src="https://github.com/user-attachments/assets/7ac3c4d3-9522-4e5b-9308-5cb44ff71200">
+<br>
+<br>
+<img width="959" alt="starlink_tracker_screenshot_2" src="https://github.com/user-attachments/assets/0dbf2dd4-4776-4c51-8b3c-9abd7a7ae603">
 
