@@ -112,30 +112,25 @@ function initializeMap(accessToken) {
                     let lastModified = sourceNumberToLastModified[i+1]? sourceNumberToLastModified[i+1] : null;
 
                     fetch(`${herokuAppURL}/satellite_data/${i+1}`, {
-                            method: 'GET',
-                            headers: {
-                                'If-Modified-Since': new Date(lastModified).toUTCString()
-                            }
-                        }).then(res => {
-                            if(res.status == 200) {
-                                sourceNumberToLastModified[i+1] = new Date().toUTCString();
-                                try {
-                                    return res.json();
-                                } catch (err) {
-                                    console.log("NOT UPDATED DUE TO ERROR: " + err);
-                                    return;
-                                }
-                            } else if(res.status == 304) {
-                                return;
-                            } else {
-                                console.log("Error, failed to fetch images, status: " + res.status);
-                                return;
-                            }
-                        }).then(data => {
-                            if(data) {
-                                mapSource.setData(data);
-                            }
-                        });                
+                        method: 'GET',
+                        headers: {
+                            'If-Modified-Since': new Date(lastModified).toUTCString()
+                        }
+                    }).then(res => {
+                        if(res.status == 200) {
+                            sourceNumberToLastModified[i+1] = new Date().toUTCString();
+                                return res.json();
+                        } else if(res.status == 304) {
+                            return;
+                        } else {
+                            console.log("Error, failed to fetch images, status: " + res.status);
+                            return;
+                        }
+                    }).then(data => {
+                        if(data) {
+                            mapSource.setData(data);
+                        }
+                    });
                 }
             }, 4000);
         }); // sources.forEach()

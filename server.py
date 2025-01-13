@@ -37,7 +37,12 @@ def update_file(input_file_name, file_number, norad_to_satellite, ts):
             geojson_dict = json.load(input_file)
             geojson_dict_backup = geojson_dict
         except Exception as e:
+            # File was corrupted, regenerate file from EarthSatellite objects in memory, referencing them from the division_to_satellite map
             print("ERROR READING DATA", e)
+            print("REGENERATING CORRUPTED FILE", str(file_number), "...")
+            file_name = PATH_TO_GEOJSON_DATA_FOLDER + "/satellite_data_" + str(file_number) + ".geojson"
+            satellite_utils.satellites_to_geojson(division_to_satellites[file_number].values(), file_name, ts)
+            print("SUCCESSFULLY REGENERATED FILE", str(file_number))
             return False
 
     # Convert inner dicts from strings to dicts
