@@ -119,7 +119,12 @@ function initializeMap(accessToken) {
                         }).then(res => {
                             if(res.status == 200) {
                                 sourceNumberToLastModified[i+1] = new Date().toUTCString();
-                                return res.json();
+                                try {
+                                    return res.json();
+                                } catch (err) {
+                                    console.log("NOT UPDATED DUE TO ERROR: " + err);
+                                    return;
+                                }
                             } else if(res.status == 304) {
                                 return;
                             } else {
