@@ -1,5 +1,0 @@
-gunicorn
-geojson
-flask
-skyfield
-flask_cors
