@@ -88,6 +88,7 @@ function initializeMap(accessToken) {
                 selectedSatellite = { name, coordinates, norad, last_updated };
 
                 addSidebarData({ name, coordinates, norad, last_updated });
+                showSidebar();
 
                 //Paints selected satellite red, all others green
                 layers.forEach(layerArg => {
@@ -221,6 +222,11 @@ function resizeSidebar() {
     if(satelliteData && satelliteData.className) {
         satelliteData.className = sidebar.className;
     }
+}
+
+function showSidebar() {
+    let sidebar = document.getElementById('sidebar');
+    sidebar.className = "maximized";
 }
 
 function setUpClock() {
