@@ -75,15 +75,26 @@ function initializeMap(accessToken) {
 
                 let feature = e.features[0];
 
-                let lastSelectedSatelliteId = null;
-                if(selectedSatellite && selectedSatellite.norad) {
-                    lastSelectedSatelliteId = selectedSatellite.norad;
-                }
-
                 const coordinates = feature.geometry.coordinates.slice();
                 const name = feature.properties.name;
                 const last_updated = feature.properties.last_updated;
                 const norad = feature.properties.id;
+
+                if(selectedSatellite && selectedSatellite.norad && norad === selectedSatellite.norad) {
+                    // Setting to null will prevent it from updating
+                    selectedSatellite = null;
+
+                    //Resets color
+                    layers.forEach(layerArg => {
+                        map.setPaintProperty(layerArg, 'circle-color',
+                            '#32cd32'  // default color
+                        );
+                    });
+
+                    clearSidebarData();
+                    return;
+
+                }
 
                 selectedSatellite = { name, coordinates, norad, last_updated };
 
@@ -213,6 +224,11 @@ function addSidebarData(satellite) {
     newDataElement.addEventListener('click', resizeSidebar);
     sidebar.append(picture);
     sidebar.append(newDataElement);
+}
+
+function clearSidebarData() {
+    let sidebar = document.getElementById('sidebar');
+    sidebar.innerHTML = '<p>No satellite selected</p>';
 }
 
 function resizeSidebar() {
