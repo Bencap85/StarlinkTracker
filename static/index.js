@@ -18,7 +18,7 @@ initializeMap(mapboxApiToken);
 
 
 function initializeMap(accessToken) {
-    console.log(accessToken);
+
     mapboxgl.accessToken = accessToken;
     const map = new mapboxgl.Map({
         container: 'map',
@@ -213,10 +213,8 @@ function addSidebarData(satellite) {
                     </li>
                 </ul>
             </li>
-            <li>Norad Number: <br> 
-                <span class="value">${satellite.norad}</span></li>
-            <li>Last Updated: <br>
-                <span class="value">${formattedDate} UTC</span></li>
+            <li>Norad Number: <span class="value" style="display: inline; margin-left: 0;">${satellite.norad}</span></li>
+            <li>Last Updated: <span class="value" style="display: inline; margin-left: 0;">${formattedDate} UTC</span></li>
         </ul>
     
     `;

@@ -16,7 +16,6 @@ body {
 }
 #sidebar {
     background-color: rgb(255, 255, 255);
-    /* display: flex; */
     border-right: 0.5vw solid rgb(203, 203, 203);
     height: 100vh;
     z-index: 1;
@@ -43,11 +42,10 @@ body {
     
 }
 .sidebar-satellite-data-list li {
-    color: green;
+    color: black;
     margin-bottom: 5%;
-    background-color: rgb(242, 242, 242);
+    background-color: white;
     border: 1px solid rgb(146, 146, 146);
-    border-radius: 3px;
     padding: 2%;
     list-style-type: none;
     margin-left: -9.5%;
@@ -56,7 +54,7 @@ body {
 }
 .sidebar-satellite-data-list .value {
     display: block;
-    color: red;
+    color: green;
     width: fit-content;
     margin-left: 10%;
     margin-top: 2%;
@@ -71,7 +69,7 @@ body {
     border: none;
 }
 .coordinates-list-value {
-    color: rgb(255, 0, 0);
+    color: green;
     font-weight: 100;
 }
 #sidebar.minimized > * {
