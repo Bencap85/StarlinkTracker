@@ -1,5 +1,5 @@
 <h1>Starlink Tracker</h1>
-This project monitors the locations of 5,000 Starlink satellites in real time. Data is gathered from the Celestrak API and manipulated through the Skyfield Python library. This project integrates the MapBox API to project the coordinates of each satellite over Earth. 
+This project monitors the locations of 5,000 Starlink satellites in real time. Data is gathered from the Celestrak API and processed using the Skyfield Python library. This project integrates with MapBox API to project the positions of each satellite over Earth. 
 
 <h2>Overview</h2>
 
@@ -24,6 +24,11 @@ Another is the **/satellite_data/norad/\<norad>** endpoint, which provides more 
 The client provides the user interface to track the Starlink satellites. Using the MapBox API, it creates a world map and overlays it with satellite positions. Still using the pagination approach, the client continuously polls the server
 for updates to the data by group. If there is a change in the data of any of the groups, it will update the coordinates of the respective group's satellites. MapBox was unable to handle large data inputs/modifications, so the pagination approach was critical to achieving 
 satisfactory, low-latency results.
+<br>
+<br>
+
+<h2>Future Improvements</h2>
+This project was developed as a kind of proof-of-concept for tracking satellite positions over the world. Now that the MVP is complete, there are improvements I would like to make. I am not terribly happy with how the client must constantly perform HTTP requests to poll the server for updates to satellite positions. While this approach certainly works, it could be implemented more cleanly through a web socket connection which would allow the server to push updates to the client without the client having to request them. 
 <br>
 <br>
 
