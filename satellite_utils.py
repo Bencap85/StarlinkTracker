@@ -23,8 +23,8 @@ def fetch_tle_data():
 
 
 
-def initialize_satellites(file_name):  # Loads satellites from .tle file into memory (returns dict of norad-to-satellite)
-    satellites = {}
+def initialize_satellites(file_name):  # Loads satellites from .tle file into memory (returns list of satellites)
+    satellites = []
     with open(file_name, "r") as file:
         while True:
             name = file.readline()
@@ -38,7 +38,7 @@ def initialize_satellites(file_name):  # Loads satellites from .tle file into me
                 break
 
             satellite = EarthSatellite(line1, line2, name)
-            satellites[satellite.model.satnum] = satellite
+            satellites.append(satellite)
 
     return satellites
 
@@ -52,6 +52,8 @@ def get_current_position(satellite, ts): # [Lng, Lat] of a satellite at instant 
         longitude = -1
         latitude = -1
     return [longitude, latitude]
+
+'''
 
 def satellite_to_geojson_obj(satellite, ts):
 
@@ -97,6 +99,9 @@ def satellites_to_geojson(satellites, out_file_name, ts):
         map = {"type": "FeatureCollection", "features": satellite_geojson_objects}
 
         json.dump(map, geojson_file)
+        
+        
+'''
 
 
 
