@@ -10,6 +10,13 @@ import satellite_utils
 from flask_cors import CORS
 from multiprocessing import Pool, Manager
 
+# Set up
+app = Flask(__name__)
+socketIO = SocketIO(app, cors_allowed_origins='*')
+CORS(app)
+
+satellite_objects = satellite_utils.initialize_satellites("tle_data/satellite_data_file.tle")
+
 # Socket events
 SOCKET_CONNECT = 'connect'
 SOCKET_DISCONNECT = 'disconnect'
@@ -17,7 +24,6 @@ SOCKET_UPDATE_POSITIONS = 'update_positions'
 SOCKET_INITIAL_POSITIONS = 'initial_positions'
 
 UPDATE_DELAY_SECONDS = 1
-
 
 def update_positions(update_event, send_event):
     while True:
@@ -58,7 +64,6 @@ def update_positions_concurrently(pool, update_event, send_event):
         print("This iteration took", end_time - start_time, "seconds")
 
         update_event.set()
-
         # time.sleep(UPDATE_DELAY_SECONDS)
 
 def send_update(update_event, send_event):
@@ -77,15 +82,6 @@ def send_update(update_event, send_event):
         print(f"Sending data took {end_time - start_time} seconds")
 
         send_event.set()
-
-
-
-# Set up
-app = Flask(__name__)
-socketIO = SocketIO(app, cors_allowed_origins='*')
-CORS(app)
-
-satellite_objects = satellite_utils.initialize_satellites("tle_data/satellite_data_file.tle")
 
 
 @app.route('/', methods=['GET'])
@@ -150,9 +146,10 @@ if __name__ == '__main__':
         update_thread = threading.Thread(target=update_positions_concurrently, args=(pool, update_event, send_event))
         send_update_thread = threading.Thread(target=send_update, args=(update_event, send_event))
 
+        update_thread.daemon = True
+        send_update_thread.daemon = True
+
         update_thread.start()
         send_update_thread.start()
 
-        # update_thread.join()
-        # send_update_thread.join()
         socketIO.run(app, host='0.0.0.0', port=5000, debug=True, allow_unsafe_werkzeug=True)
