@@ -50,6 +50,10 @@ socket.on('update_positions', data => {
 });
 
 document.getElementById('sidebar').addEventListener('click', resizeSidebar);
+if (window.innerWidth <= 600) {
+    // Hide sidebar
+    minimizeSidebar();
+}
 setUpClock();
 setInterval(updateClock, 1000);
 
@@ -195,7 +199,7 @@ function addSidebarData(satellite) {
     const formattedDate = new Intl.DateTimeFormat('en-US', options).format(date);
 
     let newDataElement = document.createElement('div');
-    newDataElement.id = "sidebar-satellite-images";
+    newDataElement.id = "sidebar-satellite-data";
     newDataElement.innerHTML = `
     
         <h2>${satellite.name}</h2>
@@ -203,10 +207,10 @@ function addSidebarData(satellite) {
             <li>Coordinates Over Earth <br>
                 <ul class="coordinates-list">
                     <li>
-                        Longitude: <span class="coordinates-list-value">${satellite.coordinates[0]}</span>
+                        Longitude: <span class="coordinates-list-value">${satellite.coordinates[0].toFixed(4)}</span>
                     </li>
                     <li>
-                        Latitude: <span class="coordinates-list-value">${satellite.coordinates[1]}</span>
+                        Latitude: <span class="coordinates-list-value">${satellite.coordinates[1].toFixed(4)}</span>
                     </li>
                 </ul>
             </li>
@@ -217,6 +221,12 @@ function addSidebarData(satellite) {
     `;
     newDataElement.className = sidebar.className;
     newDataElement.addEventListener('click', resizeSidebar);
+
+    let children = newDataElement.children;
+    for (let i = 0; i < children.length; i++) {
+        children[i].addEventListener('click', resizeSidebar);
+    }
+
     sidebar.append(picture);
     sidebar.append(newDataElement);
 }
@@ -239,6 +249,14 @@ function showSidebar() {
     let sidebar = document.getElementById('sidebar');
     sidebar.className = "maximized";
 }
+function minimizeSidebar() {
+    let sidebar = document.getElementById('sidebar');
+    sidebar.className = "minimized";
+    let satelliteData = document.getElementById('sidebar-satellite-data');
+    if(satelliteData && satelliteData.className) {
+        satelliteData.className = "minimized";
+    }
+}
 
 function setUpClock() {
     let date = new Date();
@@ -251,8 +269,4 @@ function updateClock() {
     let date = new Date();
     document.getElementById('clock').textContent = `${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')}:${String(date.getUTCSeconds()).padStart(2, '0')} UTC`;
 }
-
-
-
-        
 

@@ -27,19 +27,8 @@ body {
     width: 2%;
 }
 #sidebar-satellite-data {
-    margin-bottom: 0;
-    margin-top: 2%;
-    width: 80%;
-    margin-left: auto;
-    margin-right: auto;
-    background-color: rgb(255, 255, 255);
-    color: rgb(0, 0, 0);
-    padding: 5%;
-    padding-top: 0;
-    border: 1.5px solid rgb(142, 142, 142);
-    border-radius: 3px;
-    font-weight: bold;
-    
+    border: none;
+
 }
 .sidebar-satellite-data-list li {
     color: black;
@@ -93,4 +82,10 @@ body {
     padding: 1.5%;
     border: 1px solid white;
     border-radius: 0px;
+}
+@media (max-width: 600px) {
+    #sidebar.maximized {
+        width: 98%;
+
+    }
 }
