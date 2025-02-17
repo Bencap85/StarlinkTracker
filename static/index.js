@@ -2,14 +2,21 @@
 
 let map = null;
 let selectedSatellite = null;
+let lastUpdatedDate = null;
+let MAX_SECONDS_PER_UPDATE = 15;
 
 const socket = io.connect('http://localhost:5000');
 
 socket.on('initial_positions', data => {
     if(map) return;
 
+    let lastUpdatedDateString = data['timestamp'];
+    lastUpdatedDateString = lastUpdatedDateString.replace(' ', 'T') + 'Z';
+    lastUpdatedDate = new Date(lastUpdatedDateString);
+
     console.log("receiving initial positions");
     initializeMap(mapboxApiToken, data['positions']);
+    hideSpinner();
 });
 
 socket.on('update_positions', data => {
@@ -18,6 +25,9 @@ socket.on('update_positions', data => {
     console.log("received update");
 
     let satellitePositions = data['positions'];
+    let lastUpdatedDateString = data['timestamp'];
+    lastUpdatedDateString = lastUpdatedDateString.replace(' ', 'T') + 'Z';
+    lastUpdatedDate = new Date(lastUpdatedDateString);
 
     // Updates selected satellite data in sidebar
     if (selectedSatellite) {
@@ -45,9 +55,12 @@ socket.on('update_positions', data => {
     });
 
     console.log("Finished rendering data");
+    hideSpinner();
 
 
 });
+
+showSpinner();
 
 document.getElementById('sidebar').addEventListener('click', resizeSidebar);
 if (window.innerWidth <= 600) {
@@ -269,4 +282,31 @@ function updateClock() {
     let date = new Date();
     document.getElementById('clock').textContent = `${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')}:${String(date.getUTCSeconds()).padStart(2, '0')} UTC`;
 }
+
+function showSpinner() {
+    document.getElementById('spinner').style.display = 'block';
+    document.getElementById('map').style.opacity = '0.8';
+}
+function hideSpinner() {
+    document.getElementById('spinner').style.display = 'none';
+    document.getElementById('map').style.opacity = '1';
+}
+
+function checkForUpdate() {
+    if (!lastUpdatedDate) return;
+
+    let currentTime = new Date().getTime();
+    let lastUpdatedTime = lastUpdatedDate.getTime();
+    let diffInSeconds = (currentTime - lastUpdatedTime) / 1000;
+
+    if (diffInSeconds > MAX_SECONDS_PER_UPDATE) {
+        showSpinner();
+    }
+}
+
+let checkForUpdateInterval = setInterval(() => {
+    checkForUpdate();
+}, 1000);
+
+
 
