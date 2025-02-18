@@ -1,18 +1,20 @@
 
 
-let map = null;
-let selectedSatellite = null;
-let lastUpdatedDate = null;
-let MAX_SECONDS_PER_UPDATE = 15;
+const app = {
+    map: null,
+    selectedSatellite: null,
+    lastUpdatedDate: null,
+    MAX_SECONDS_PER_UPDATE: 15
+}
 
 const socket = io.connect('http://localhost:5000');
 
 socket.on('initial_positions', data => {
-    if(map) return;
+    if(app.map) return;
 
     let lastUpdatedDateString = data['timestamp'];
     lastUpdatedDateString = lastUpdatedDateString.replace(' ', 'T') + 'Z';
-    lastUpdatedDate = new Date(lastUpdatedDateString);
+    app.lastUpdatedDate = new Date(lastUpdatedDateString);
 
     console.log("receiving initial positions");
     initializeMap(mapboxApiToken, data['positions']);
@@ -20,27 +22,24 @@ socket.on('initial_positions', data => {
 });
 
 socket.on('update_positions', data => {
-    if (!map) return;
-
-    console.log("received update");
+    if (!app.map) return;
 
     let satellitePositions = data['positions'];
     let lastUpdatedDateString = data['timestamp'];
     lastUpdatedDateString = lastUpdatedDateString.replace(' ', 'T') + 'Z';
-    lastUpdatedDate = new Date(lastUpdatedDateString);
+    app.lastUpdatedDate = new Date(lastUpdatedDateString);
 
     // Updates selected satellite data in sidebar
-    if (selectedSatellite) {
-        console.log("Updating selected satellite...");
-        selectedSatellite.last_updated = data['timestamp'];
-        selectedSatellite.coordinates = satellitePositions[selectedSatellite.norad];
-        addSidebarData(selectedSatellite);
+    if (app.selectedSatellite) {
+        app.selectedSatellite.last_updated = data['timestamp'];
+        app.selectedSatellite.coordinates = satellitePositions[app.selectedSatellite.norad];
+        addSidebarData(app.selectedSatellite);
     }
 
     let keys = Object.keys(satellitePositions);
 
     // Add source
-    map.getSource('satellites').setData({
+    app.map.getSource('satellites').setData({
         type: 'FeatureCollection',
         features: keys.map(norad => ({
             type: 'Feature',
@@ -54,9 +53,7 @@ socket.on('update_positions', data => {
         }))
     });
 
-    console.log("Finished rendering data");
     hideSpinner();
-
 
 });
 
@@ -71,17 +68,21 @@ setUpClock();
 setInterval(updateClock, 1000);
 
 async function fetchSelectedSatelliteData(norad) {
-    const res = await fetch(`http://localhost:5000/satellite_data/${norad}`);
-    const data = await res.json();
-    selectedSatellite = data;
-    addSidebarData(selectedSatellite);
+    try {
+        const res = await fetch(`http://localhost:5000/satellite_data/${norad}`);
+        const data = await res.json();
+        app.selectedSatellite = data;
+        addSidebarData(app.selectedSatellite);
+    } catch (e) {
+        console.log("Failed to fetch data for satellite " + norad);
+    }
 
 }
 
 function initializeMap(accessToken, satellitePositions) {
 
     mapboxgl.accessToken = accessToken;
-    map = new mapboxgl.Map({
+    app.map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/dark-v10', 
         center: [-84, 38],
@@ -89,21 +90,21 @@ function initializeMap(accessToken, satellitePositions) {
         maxBounds: [[-160, -85], [170, 85]]
     });
 
-    map.on('load', function() {
+    app.map.on('load', function() {
         const labelLayers = [
             'country-label', 'state-label', 'settlement-label', 
             'water-label', 'airport-label', 'poi-label'
         ];
         labelLayers.forEach(layer => {
-            if (map.getLayer(layer)) {
-                map.setLayoutProperty(layer, 'visibility', 'none');
+            if (app.map.getLayer(layer)) {
+                app.map.setLayoutProperty(layer, 'visibility', 'none');
             }
         });
-        map.getCanvas().style.cursor = 'crosshair';
+        app.map.getCanvas().style.cursor = 'crosshair';
 
         let keys = Object.keys(satellitePositions);
         // Add source
-        map.addSource('satellites', {
+        app.map.addSource('satellites', {
             type: 'geojson',
             data: {
                 type: 'FeatureCollection',
@@ -121,7 +122,7 @@ function initializeMap(accessToken, satellitePositions) {
         });
 
         //Add layer
-        map.addLayer({
+        app.map.addLayer({
             "id": "satellites",
             "source": 'satellites',
             "type": "circle",
@@ -142,7 +143,7 @@ function initializeMap(accessToken, satellitePositions) {
 
 
 
-        map.on('click',  'satellites', async (e) => {
+        app.map.on('click',  'satellites', async (e) => {
 
             if(!e || !e.features || e.features.length > 1) {
                 console.log("Error detecting satellites that were clicked");
@@ -151,32 +152,31 @@ function initializeMap(accessToken, satellitePositions) {
 
             let feature = e.features[0];
 
-            if (!selectedSatellite) {
+            if (!app.selectedSatellite) {
                 // Select satellite
                 await fetchSelectedSatelliteData(feature.properties.id);
                 showSidebar();
-            } else if (feature.properties.id === String(selectedSatellite.norad)) {
+            } else if (feature.properties.id === String(app.selectedSatellite.norad)) {
                 // Deselect satellite
-                selectedSatellite = null;
+                app.selectedSatellite = null;
             } else {
                 // Change satellite selection
                 await fetchSelectedSatelliteData(feature.properties.id);
                 showSidebar();
             }
 
-            if (!selectedSatellite) {
+            if (!app.selectedSatellite) {
                 // Resets color
-                map.setPaintProperty('satellites', 'circle-color',
+                app.map.setPaintProperty('satellites', 'circle-color',
                     '#32cd32'  // default color
                 );
-
                 clearSidebarData();
 
             } else {
                 //Paints selected satellite red, all others green
-                map.setPaintProperty('satellites', 'circle-color', [
+                app.map.setPaintProperty('satellites', 'circle-color', [
                     'case',
-                    ['==', ['get', 'id'], String(selectedSatellite.norad)],
+                    ['==', ['get', 'id'], String(app.selectedSatellite.norad)],
                     '#ff0000', // color for selected satellite
                     '#32cd32'  // default color
                 ]);
@@ -293,13 +293,13 @@ function hideSpinner() {
 }
 
 function checkForUpdate() {
-    if (!lastUpdatedDate) return;
+    if (!app.lastUpdatedDate) return;
 
     let currentTime = new Date().getTime();
-    let lastUpdatedTime = lastUpdatedDate.getTime();
+    let lastUpdatedTime = app.lastUpdatedDate.getTime();
     let diffInSeconds = (currentTime - lastUpdatedTime) / 1000;
 
-    if (diffInSeconds > MAX_SECONDS_PER_UPDATE) {
+    if (diffInSeconds > app.MAX_SECONDS_PER_UPDATE) {
         showSpinner();
     }
 }

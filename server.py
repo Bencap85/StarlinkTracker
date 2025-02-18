@@ -3,8 +3,8 @@ import time
 import json
 from datetime import datetime
 import os
-from flask import Flask, send_file, render_template, request
-from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask import Flask, render_template, request
+from flask_socketio import SocketIO, emit
 from skyfield.api import load
 import satellite_utils
 from flask_cors import CORS
@@ -16,13 +16,15 @@ app = Flask(__name__)
 socketIO = SocketIO(app, cors_allowed_origins='*')
 CORS(app)
 
+UPDATE_DELAY_SECONDS = 0
+REFRESH_TLE_HOURS = 24
+PATH_TO_TLE_DATA = "tle_data/satellite_data_file.tle"
+
 # Variables
-satellite_objects = satellite_utils.initialize_satellites("tle_data/satellite_data_file.tle")
+satellite_objects = satellite_utils.initialize_satellites(PATH_TO_TLE_DATA)
 ts = load.timescale()
 norad_to_coordinates = {}
 norad_to_name = {}
-
-UPDATE_DELAY_SECONDS = 0
 
 # Socket events
 SOCKET_CONNECT = 'connect'
@@ -31,13 +33,12 @@ SOCKET_UPDATE_POSITIONS = 'update_positions'
 SOCKET_INITIAL_POSITIONS = 'initial_positions'
 
 def initialize_globals():
-    print("Starting setup...")
     global satellite_objects
     global norad_to_coordinates
     global norad_to_name
 
-    # satellite_utils.fetch_tle_data()
-    satellite_objects = satellite_utils.initialize_satellites("tle_data/satellite_data_file.tle")
+    satellite_utils.fetch_tle_data()
+    satellite_objects = satellite_utils.initialize_satellites(PATH_TO_TLE_DATA)
 
     manager = Manager()
     norad_to_coordinates = manager.dict()
@@ -46,8 +47,6 @@ def initialize_globals():
     for satellite in satellite_objects:
         norad_to_coordinates[satellite.model.satnum] = satellite_utils.get_current_position(satellite, ts)
         norad_to_name[satellite.model.satnum] = satellite.name
-
-    print("Setup complete")
 
 
 def update_satellite_position(i, ts):
@@ -60,8 +59,6 @@ def update_positions(pool, update_event, send_event):
         send_event.wait()
         send_event.clear()
 
-        print("BEGIN UPDATE...")
-
         start_time = time.time()
         results = pool.starmap(update_satellite_position,
                                [(i, ts) for i in range(len(satellite_objects))])
@@ -71,7 +68,7 @@ def update_positions(pool, update_event, send_event):
 
         end_time = time.time()
 
-        print("This iteration took", end_time - start_time, "seconds")
+        print(f"Updating positions took {end_time - start_time} seconds")
 
         update_event.set()
         time.sleep(UPDATE_DELAY_SECONDS)
@@ -88,7 +85,6 @@ def send_update(update_event, send_event):
 
         copy = dict(norad_to_coordinates)
         send_event.set()
-        print("BEGIN SEND...")
         start_time = time.time()
 
         # Broadcast changes to all
@@ -99,33 +95,28 @@ def send_update(update_event, send_event):
 
 
 def refresh_TLE_data(update_event, send_event):
-    print("Waiting for events to be set...")
+    # Wait for update and send operations to complete
     update_event.wait()
     update_event.clear()
     send_event.wait()
     send_event.clear()
 
-    print("Fetching data now...")
-
     try:
-        pass
-        # satellite_utils.fetch_tle_data()
+        satellite_utils.fetch_tle_data()
     except Exception as e:
         print(f"Error fetching TLE data: {e}")
 
-    print("successfully fetched TLE data")
     global satellite_objects
-    satellite_objects = satellite_utils.initialize_satellites("tle_data/satellite_data_file.tle")
+    satellite_objects = satellite_utils.initialize_satellites(PATH_TO_TLE_DATA)
 
-    print("Continuing execution now...")
+    # Set send_event to continue execution by updating the positions
     send_event.set()
 
 
 def start_scheduler(update_event, send_event):
     scheduler = BackgroundScheduler()
-    scheduler.add_job(func=refresh_TLE_data, args=[update_event, send_event], trigger='interval', hours=24)
+    scheduler.add_job(func=refresh_TLE_data, args=[update_event, send_event], trigger='interval', hours=REFRESH_TLE_HOURS)
     scheduler.start()
-
 
 
 @app.route('/', methods=['GET'])
