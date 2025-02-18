@@ -7,7 +7,7 @@ const app = {
     MAX_SECONDS_PER_UPDATE: 15
 }
 
-const socket = io.connect('http://localhost:5000');
+const socket = io.connect(`${herokuAppURL}`);
 
 socket.on('initial_positions', data => {
     if(app.map) return;
@@ -69,7 +69,7 @@ setInterval(updateClock, 1000);
 
 async function fetchSelectedSatelliteData(norad) {
     try {
-        const res = await fetch(`http://localhost:5000/satellite_data/${norad}`);
+        const res = await fetch(`${herokuAppURL}/satellite_data/${norad}`);
         const data = await res.json();
         app.selectedSatellite = data;
         addSidebarData(app.selectedSatellite);

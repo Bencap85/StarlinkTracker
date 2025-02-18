@@ -16,7 +16,7 @@ app = Flask(__name__)
 socketIO = SocketIO(app, cors_allowed_origins='*')
 CORS(app)
 
-UPDATE_DELAY_SECONDS = 0
+UPDATE_DELAY_SECONDS = 1
 REFRESH_TLE_HOURS = 24
 PATH_TO_TLE_DATA = "tle_data/satellite_data_file.tle"
 
