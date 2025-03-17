@@ -1,6 +1,8 @@
 
 
 let selectedSatellite = {};
+let mostRecentUpdateDate = new Date();
+let MAX_SECONDS_PER_UPDATE = 15;
 
 const sources = [
     'satellite_data_1',
@@ -13,6 +15,7 @@ sources.forEach((source, i) => {
     layers[i] = `satellite-positions-${i+1}`;
 });
 
+showSpinner();
 initializeMap(mapboxApiToken);
 
 
@@ -131,20 +134,27 @@ function initializeMap(accessToken) {
                     }).then(res => {
                         if(res.status == 200) {
                             sourceNumberToLastModified[i+1] = new Date().toUTCString();
-                                return res.json();
+                            let lastUpdatedDateString = new Date(sourceNumberToLastModified[i+1]).toUTCString();
+                            let newLastUpdatedDate = new Date(lastUpdatedDateString);
+                            if (mostRecentUpdateDate && newLastUpdatedDate > mostRecentUpdateDate) {
+                                mostRecentUpdateDate = newLastUpdatedDate;
+                            }
+                            return res.json();
                         } else if(res.status == 304) {
-                            return;
+
                         } else {
-                            console.log("Error, failed to fetch images, status: " + res.status);
-                            return;
+                            console.log("Error, failed to fetch data, status: " + res.status);
                         }
                     }).then(data => {
                         if(data) {
                             mapSource.setData(data);
                         }
-                    });
+                    }).catch(e => console.log(e));
+
+
                 }
             }, 4000);
+            hideSpinner();
         }); // sources.forEach()
     }); // map.on(load)
 }
@@ -260,6 +270,15 @@ function minimizeSidebar() {
     }
 }
 
+function showSpinner() {
+    document.getElementById('spinner').style.display = 'block';
+    document.getElementById('map').style.opacity = '0.8';
+}
+function hideSpinner() {
+    document.getElementById('spinner').style.display = 'none';
+    document.getElementById('map').style.opacity = '1';
+}
+
 function setUpClock() {
     let date = new Date();
     let clock = document.createElement('div');
@@ -271,6 +290,26 @@ function updateClock() {
     let date = new Date();
     document.getElementById('clock').textContent = `${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')}:${String(date.getUTCSeconds()).padStart(2, '0')} UTC`;
 }
+
+function checkForUpdate() {
+    let lastUpdated = mostRecentUpdateDate
+
+    if (!lastUpdated) return;
+
+    let currentTime = new Date().getTime();
+    let lastUpdatedTime = lastUpdated.getTime();
+    let diffInSeconds = (currentTime - lastUpdatedTime) / 1000;
+
+    if (diffInSeconds > MAX_SECONDS_PER_UPDATE) {
+        showSpinner();
+    } else {
+        hideSpinner();
+    }
+}
+
+let checkForUpdateInterval = setInterval(() => {
+    checkForUpdate();
+}, 1000);
 
 
 
