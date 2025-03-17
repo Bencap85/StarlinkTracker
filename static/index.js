@@ -1,6 +1,8 @@
 
 
 let selectedSatellite = {};
+let mostRecentUpdateDate = new Date();
+let MAX_SECONDS_PER_UPDATE = 15;
 
 const sources = [
     'satellite_data_1',
@@ -13,6 +15,7 @@ sources.forEach((source, i) => {
     layers[i] = `satellite-positions-${i+1}`;
 });
 
+showSpinner();
 initializeMap(mapboxApiToken);
 
 
@@ -44,7 +47,7 @@ function initializeMap(accessToken) {
         sources.forEach((source, i) => {
             map.addSource(source, {
                 "type": "geojson",
-                "data": `http://127.0.0.1:5000/satellite_data/${i+1}`
+                "data": `${herokuAppURL}/satellite_data/${i+1}`
             });
         });
 
@@ -131,20 +134,27 @@ function initializeMap(accessToken) {
                     }).then(res => {
                         if(res.status == 200) {
                             sourceNumberToLastModified[i+1] = new Date().toUTCString();
-                                return res.json();
+                            let lastUpdatedDateString = new Date(sourceNumberToLastModified[i+1]).toUTCString();
+                            let newLastUpdatedDate = new Date(lastUpdatedDateString);
+                            if (mostRecentUpdateDate && newLastUpdatedDate > mostRecentUpdateDate) {
+                                mostRecentUpdateDate = newLastUpdatedDate;
+                            }
+                            return res.json();
                         } else if(res.status == 304) {
-                            return;
+
                         } else {
-                            console.log("Error, failed to fetch images, status: " + res.status);
-                            return;
+                            console.log("Error, failed to fetch data, status: " + res.status);
                         }
                     }).then(data => {
                         if(data) {
                             mapSource.setData(data);
                         }
-                    });
+                    }).catch(e => console.log(e));
+
+
                 }
             }, 4000);
+            hideSpinner();
         }); // sources.forEach()
     }); // map.on(load)
 }
@@ -152,6 +162,10 @@ function initializeMap(accessToken) {
 
 // Add event listeners
 document.getElementById('sidebar').addEventListener('click', resizeSidebar);
+if (window.innerWidth <= 600) {
+    // Hide sidebar
+    minimizeSidebar();
+}
 
 //Setup clock
 setUpClock();
@@ -198,7 +212,7 @@ function addSidebarData(satellite) {
     const formattedDate = new Intl.DateTimeFormat('en-US', options).format(date);
 
     let newDataElement = document.createElement('div');
-    newDataElement.id = "sidebar-satellite-images";
+    newDataElement.id = "sidebar-satellite-data";
     newDataElement.innerHTML = `
     
         <h2>${satellite.name}</h2>
@@ -206,10 +220,10 @@ function addSidebarData(satellite) {
             <li>Coordinates Over Earth <br>
                 <ul class="coordinates-list">
                     <li>
-                        Longitude: <span class="coordinates-list-value">${satellite.coordinates[0]}</span>
+                        Longitude: <span class="coordinates-list-value">${satellite.coordinates[0].toFixed(4)}</span>
                     </li>
                     <li>
-                        Latitude: <span class="coordinates-list-value">${satellite.coordinates[1]}</span>
+                        Latitude: <span class="coordinates-list-value">${satellite.coordinates[1].toFixed(4)}</span>
                     </li>
                 </ul>
             </li>
@@ -220,6 +234,10 @@ function addSidebarData(satellite) {
     `;
     newDataElement.className = sidebar.className;
     newDataElement.addEventListener('click', resizeSidebar);
+    let children = newDataElement.children;
+    for (let i = 0; i < children.length; i++) {
+        children[i].addEventListener('click', resizeSidebar);
+    }
     sidebar.append(picture);
     sidebar.append(newDataElement);
 }
@@ -243,6 +261,24 @@ function showSidebar() {
     sidebar.className = "maximized";
 }
 
+function minimizeSidebar() {
+    let sidebar = document.getElementById('sidebar');
+    sidebar.className = "minimized";
+    let satelliteData = document.getElementById('sidebar-satellite-data');
+    if(satelliteData && satelliteData.className) {
+        satelliteData.className = "minimized";
+    }
+}
+
+function showSpinner() {
+    document.getElementById('spinner').style.display = 'block';
+    document.getElementById('map').style.opacity = '0.8';
+}
+function hideSpinner() {
+    document.getElementById('spinner').style.display = 'none';
+    document.getElementById('map').style.opacity = '1';
+}
+
 function setUpClock() {
     let date = new Date();
     let clock = document.createElement('div');
@@ -254,6 +290,26 @@ function updateClock() {
     let date = new Date();
     document.getElementById('clock').textContent = `${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')}:${String(date.getUTCSeconds()).padStart(2, '0')} UTC`;
 }
+
+function checkForUpdate() {
+    let lastUpdated = mostRecentUpdateDate
+
+    if (!lastUpdated) return;
+
+    let currentTime = new Date().getTime();
+    let lastUpdatedTime = lastUpdated.getTime();
+    let diffInSeconds = (currentTime - lastUpdatedTime) / 1000;
+
+    if (diffInSeconds > MAX_SECONDS_PER_UPDATE) {
+        showSpinner();
+    } else {
+        hideSpinner();
+    }
+}
+
+let checkForUpdateInterval = setInterval(() => {
+    checkForUpdate();
+}, 1000);
 
 
 
