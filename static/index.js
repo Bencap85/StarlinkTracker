@@ -44,7 +44,7 @@ function initializeMap(accessToken) {
         sources.forEach((source, i) => {
             map.addSource(source, {
                 "type": "geojson",
-                "data": `http://127.0.0.1:5000/satellite_data/${i+1}`
+                "data": `${herokuAppURL}/satellite_data/${i+1}`
             });
         });
 
@@ -152,6 +152,10 @@ function initializeMap(accessToken) {
 
 // Add event listeners
 document.getElementById('sidebar').addEventListener('click', resizeSidebar);
+if (window.innerWidth <= 600) {
+    // Hide sidebar
+    minimizeSidebar();
+}
 
 //Setup clock
 setUpClock();
@@ -198,7 +202,7 @@ function addSidebarData(satellite) {
     const formattedDate = new Intl.DateTimeFormat('en-US', options).format(date);
 
     let newDataElement = document.createElement('div');
-    newDataElement.id = "sidebar-satellite-images";
+    newDataElement.id = "sidebar-satellite-data";
     newDataElement.innerHTML = `
     
         <h2>${satellite.name}</h2>
@@ -206,10 +210,10 @@ function addSidebarData(satellite) {
             <li>Coordinates Over Earth <br>
                 <ul class="coordinates-list">
                     <li>
-                        Longitude: <span class="coordinates-list-value">${satellite.coordinates[0]}</span>
+                        Longitude: <span class="coordinates-list-value">${satellite.coordinates[0].toFixed(4)}</span>
                     </li>
                     <li>
-                        Latitude: <span class="coordinates-list-value">${satellite.coordinates[1]}</span>
+                        Latitude: <span class="coordinates-list-value">${satellite.coordinates[1].toFixed(4)}</span>
                     </li>
                 </ul>
             </li>
@@ -220,6 +224,10 @@ function addSidebarData(satellite) {
     `;
     newDataElement.className = sidebar.className;
     newDataElement.addEventListener('click', resizeSidebar);
+    let children = newDataElement.children;
+    for (let i = 0; i < children.length; i++) {
+        children[i].addEventListener('click', resizeSidebar);
+    }
     sidebar.append(picture);
     sidebar.append(newDataElement);
 }
@@ -241,6 +249,15 @@ function resizeSidebar() {
 function showSidebar() {
     let sidebar = document.getElementById('sidebar');
     sidebar.className = "maximized";
+}
+
+function minimizeSidebar() {
+    let sidebar = document.getElementById('sidebar');
+    sidebar.className = "minimized";
+    let satelliteData = document.getElementById('sidebar-satellite-data');
+    if(satelliteData && satelliteData.className) {
+        satelliteData.className = "minimized";
+    }
 }
 
 function setUpClock() {
